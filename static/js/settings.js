@@ -7,6 +7,7 @@ import { makeWindowDraggable } from './windowDrag.js';
 import { clearDockSide } from './modalSnap.js';
 import { sortModelIds } from './modelSort.js';
 import { isAltGrEvent } from './platform.js';
+import themeModule from './theme.js';
 
 let initialized = false;
 let modalEl = null;
@@ -1586,6 +1587,7 @@ async function initAgentSettings() {
 function initAppearance() {
   syncAppearanceCheckboxes();
   syncPrivacyCheckboxes();
+  initAppearanceFontSizes();
 
   modalEl.querySelectorAll('[data-ui-key]').forEach(function(chk) {
     chk.addEventListener('change', async function() {
@@ -1647,6 +1649,152 @@ function initAppearance() {
       window.applyUIVis({});
     });
   }
+}
+
+function initAppearanceFontSizes() {
+  const chatInput = el('set-chat-font-size');
+  const sidebarInput = el('set-sidebar-font-size');
+  if (!chatInput || !sidebarInput || !themeModule || typeof themeModule.getUIFontSizes !== 'function') return;
+
+  const chatValue = el('set-chat-font-size-value');
+  const sidebarValue = el('set-sidebar-font-size-value');
+  const chatReset = el('set-chat-font-size-reset');
+  const sidebarReset = el('set-sidebar-font-size-reset');
+  const defaults = themeModule.getUIFontSizes();
+  const state = {
+    chatFontSize: defaults.chatFontSize,
+    sidebarFontSize: defaults.sidebarFontSize,
+  };
+
+  chatInput.min = String(defaults.chatMin);
+  chatInput.max = String(defaults.chatMax);
+  sidebarInput.min = String(defaults.sidebarMin);
+  sidebarInput.max = String(defaults.sidebarMax);
+
+  function clamp(value, min, max, fallback) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return fallback;
+    return Math.max(min, Math.min(max, Math.round(n)));
+  }
+
+  function label(value, def) {
+    return value === def ? 'Default' : value + 'px';
+  }
+
+  function sync() {
+    chatInput.value = String(state.chatFontSize);
+    sidebarInput.value = String(state.sidebarFontSize);
+    if (chatValue) chatValue.textContent = label(state.chatFontSize, defaults.chatDefault);
+    if (sidebarValue) sidebarValue.textContent = label(state.sidebarFontSize, defaults.sidebarDefault);
+  }
+
+  function applyLive() {
+    if (typeof themeModule.applyUIFontSizes === 'function') {
+      themeModule.applyUIFontSizes(state);
+    }
+    sync();
+  }
+
+  function persist() {
+    if (typeof themeModule.updateSavedOptions === 'function') {
+      themeModule.updateSavedOptions(state);
+    }
+  }
+
+  function editValue(valueEl, key, min, max, def, ariaLabel) {
+    if (!valueEl || valueEl.dataset.editing === '1') return;
+    valueEl.dataset.editing = '1';
+    const current = state[key];
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.className = 'font-size-value-input';
+    input.min = String(min);
+    input.max = String(max);
+    input.step = '1';
+    input.value = String(current);
+    input.setAttribute('aria-label', ariaLabel);
+    valueEl.innerHTML = '';
+    valueEl.appendChild(input);
+
+    let done = false;
+    const finish = (saveEdit) => {
+      if (done) return;
+      done = true;
+      delete valueEl.dataset.editing;
+      if (saveEdit) {
+        state[key] = clamp(input.value, min, max, def);
+        applyLive();
+        persist();
+      } else {
+        sync();
+      }
+    };
+
+    input.addEventListener('blur', () => finish(true));
+    input.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter') {
+        ev.preventDefault();
+        finish(true);
+      } else if (ev.key === 'Escape') {
+        ev.preventDefault();
+        finish(false);
+      }
+    });
+    setTimeout(() => {
+      input.focus();
+      input.select();
+    }, 0);
+  }
+
+  chatInput.addEventListener('input', function() {
+    state.chatFontSize = clamp(chatInput.value, defaults.chatMin, defaults.chatMax, defaults.chatDefault);
+    applyLive();
+  });
+  chatInput.addEventListener('change', persist);
+  sidebarInput.addEventListener('input', function() {
+    state.sidebarFontSize = clamp(sidebarInput.value, defaults.sidebarMin, defaults.sidebarMax, defaults.sidebarDefault);
+    applyLive();
+  });
+  sidebarInput.addEventListener('change', persist);
+  if (chatValue) {
+    chatValue.addEventListener('click', () => {
+      editValue(chatValue, 'chatFontSize', defaults.chatMin, defaults.chatMax, defaults.chatDefault, 'Chat text size in pixels');
+    });
+    chatValue.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter' || ev.key === ' ') {
+        ev.preventDefault();
+        editValue(chatValue, 'chatFontSize', defaults.chatMin, defaults.chatMax, defaults.chatDefault, 'Chat text size in pixels');
+      }
+    });
+  }
+  if (sidebarValue) {
+    sidebarValue.addEventListener('click', () => {
+      editValue(sidebarValue, 'sidebarFontSize', defaults.sidebarMin, defaults.sidebarMax, defaults.sidebarDefault, 'Sidebar text size in pixels');
+    });
+    sidebarValue.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter' || ev.key === ' ') {
+        ev.preventDefault();
+        editValue(sidebarValue, 'sidebarFontSize', defaults.sidebarMin, defaults.sidebarMax, defaults.sidebarDefault, 'Sidebar text size in pixels');
+      }
+    });
+  }
+
+  if (chatReset) {
+    chatReset.addEventListener('click', function() {
+      state.chatFontSize = defaults.chatDefault;
+      applyLive();
+      persist();
+    });
+  }
+  if (sidebarReset) {
+    sidebarReset.addEventListener('click', function() {
+      state.sidebarFontSize = defaults.sidebarDefault;
+      applyLive();
+      persist();
+    });
+  }
+
+  sync();
 }
 
 function syncAppearanceCheckboxes() {

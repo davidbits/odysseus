@@ -5443,6 +5443,90 @@ body.bg-pattern-sparkles {
     .vis-row:has(input:checked) .vis-icon {
       color: var(--fg);
     }
+    .font-size-settings {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .font-size-row {
+      display: grid;
+      grid-template-columns: 20px minmax(58px, 88px) minmax(120px, 1fr) 54px 28px;
+      align-items: center;
+      gap: 8px;
+      min-height: 30px;
+    }
+    .font-size-icon {
+      width: 20px;
+      color: color-mix(in srgb, var(--fg) 65%, transparent);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      text-align: center;
+    }
+    .font-size-label {
+      font-size: 12px;
+      color: var(--fg);
+      opacity: 0.85;
+    }
+    .font-size-range {
+      width: 100%;
+      min-width: 0;
+    }
+    .font-size-value {
+      font-size: 11px;
+      color: color-mix(in srgb, var(--fg) 65%, transparent);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      cursor: pointer;
+      border-radius: 4px;
+      padding: 2px 4px;
+    }
+    .font-size-value:hover,
+    .font-size-value:focus-visible {
+      color: var(--accent, var(--red));
+      background: color-mix(in srgb, var(--accent, var(--red)) 8%, transparent);
+      outline: none;
+    }
+    .font-size-value-input {
+      width: 48px;
+      height: 22px;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: inherit;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .font-size-reset {
+      width: 26px;
+      height: 26px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: transparent;
+      color: var(--fg);
+      opacity: 0.5;
+      cursor: pointer;
+    }
+    .font-size-reset:hover {
+      opacity: 0.9;
+      color: var(--accent, var(--red));
+      border-color: var(--accent, var(--red));
+      background: color-mix(in srgb, var(--accent, var(--red)) 8%, transparent);
+    }
+    @media (max-width: 560px) {
+      .font-size-row {
+        grid-template-columns: 20px minmax(58px, 1fr) 52px 28px;
+      }
+      .font-size-range {
+        grid-column: 2 / -1;
+        width: 100%;
+      }
+    }
     /* Compare model selector — match the calendar modal's clean header
        (no border underline). */
     #compare-model-overlay .modal-header h4 {
@@ -35356,4 +35440,33 @@ body.theme-frosted .modal {
 .slash-ac-empty code {
   font-family: 'Fira Code', ui-monospace, monospace;
   color: var(--accent, var(--red));
+}
+
+/* User font-size preferences. Classes are only added when a custom size is saved. */
+:root.chat-font-custom #chat-history .msg,
+:root.chat-font-custom #chat-history .msg .body {
+  font-size: var(--chat-font-size) !important;
+}
+:root.chat-font-custom .chat-input-bar textarea#message,
+:root.chat-font-custom #message,
+:root.chat-font-custom .ghost-text-overlay {
+  font-size: var(--chat-font-size) !important;
+}
+
+:root.sidebar-font-custom #sidebar .section-header-flex {
+  height: auto;
+  min-height: 29px;
+}
+:root.sidebar-font-custom #sidebar .section-header-flex h4,
+:root.sidebar-font-custom #sidebar .section-header-flex .section-title,
+:root.sidebar-font-custom #sidebar .list-item,
+:root.sidebar-font-custom #sidebar .list-item span,
+:root.sidebar-font-custom #sidebar .list-item .grow,
+:root.sidebar-font-custom #sidebar .models-row,
+:root.sidebar-font-custom #sidebar .models-row span,
+:root.sidebar-font-custom #sidebar .session-folder-header,
+:root.sidebar-font-custom #sidebar #sidebar-search-btn .grow,
+:root.sidebar-font-custom #sidebar #sidebar-new-chat-btn .grow,
+:root.sidebar-font-custom #sidebar .sidebar-assistant-entry .grow {
+  font-size: var(--sidebar-font-size) !important;
 }
